@@ -14,16 +14,32 @@ import { openModal, setModalData } from '@Store/ModalSlice';
 import useDataFetcher, { DISPATCH_TYPE } from '@Hooks/useDataFetcher';
 import { addCommand } from '@Store/DashboardStateSlice';
 
+import { Socket, io } from 'socket.io-client';
+
+const EVENT_TYPE = {
+  CONNECT: 'connect',
+  DISCONNET: 'disconnet',
+  USER_ENTER: 'user_enter',
+  USER_LEAVE: 'user_leave',
+  MESSAGE: 'message',
+  MESSAGE_UPDATE: 'message_update',
+  MESSAGE_DELETE: 'message_delete',
+  HISTORY_LOAD: 'history_load',
+  PASSWORD_COMPARE: 'password_compare',
+};
+
+/** @type {Socket} */
+const socket = new io('http://localhost:3000/');
+
 const Dashboard = ({ uid }) => {
   const storeDispatch = useDispatch();
 
   const { fetchingState, dataDispatch } = useDataFetcher();
 
-  const { loadedConversations } = useSelector((state) => state.ConversationSlice);
-  const { currentPage } = useSelector((state) => state.ConversationSlice);
+  const { loadedConversations, currentPage } = useSelector((state) => state.ConversationSlice);
+  const { userName, userPassword, userProfile } = useSelector((state) => state.UserAuthSlice);
 
   const { isModalOpen, modalComponent } = useSelector((state) => state.ModalSlice);
-  // const [modalShow, setModalShow] = useState(false);
 
   const dispatchCallbacks = {
     onSuccess: (dispatchType, response) =>
@@ -32,7 +48,47 @@ const Dashboard = ({ uid }) => {
   };
 
   useEffect(() => {
-    dataDispatch(DISPATCH_TYPE.GET_HISTORY_BY_PAGE, dispatchCallbacks, currentPage);
+    const onConnect = () => {
+      console.log('내 socket.id: ', socket.id);
+
+      socket.emit(EVENT_TYPE.HISTORY_LOAD, { currentPage });
+    };
+
+    const onMessage = (data) => {
+      console.log(`${data.userName}(${data.uid})가 보냈다잉: `, data);
+
+      storeDispatch(updateConversationHistory({ dispatchType: 0, response: { comment: data } }));
+    };
+
+    const onUserEnter = (userId) => {
+      console.log(`${userId}가 들어왔다잉`);
+    };
+
+    const onUserLeave = (userId) => {
+      console.log(`${userId}가 떠났다잉ㅠ`);
+    };
+
+    const onHistoryLoad = (data) => {
+      console.log('히스토리가 도착했어요: ', data);
+
+      storeDispatch(
+        updateConversationHistory({
+          dispatchType: DISPATCH_TYPE.GET_HISTORY_BY_PAGE,
+          response: data.comments,
+        })
+      );
+    };
+
+    socket.on('connect', onConnect);
+    socket.on('message', onMessage);
+    socket.on('USER_ENTER', onUserEnter);
+    socket.on('USER_LEAVE', onUserLeave);
+    socket.on(EVENT_TYPE.HISTORY_LOAD, onHistoryLoad);
+  }, []);
+
+  useEffect(() => {
+    socket.emit(EVENT_TYPE.HISTORY_LOAD, { currentPage });
+    // dataDispatch(DISPATCH_TYPE.GET_HISTORY_BY_PAGE, dispatchCallbacks, currentPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
@@ -44,13 +100,24 @@ const Dashboard = ({ uid }) => {
       storeDispatch(openModal());
       storeDispatch(addCommand('modal-show'));
     }
+
+    socket.emit('message', {
+      uid,
+      userName,
+      userPassword,
+      userProfile,
+      commentType: messageType,
+      commentDate: new Date(),
+      commentContent: message,
+      commentReply: replyData,
+    });
   };
 
   return (
     <StyledDashboard.Container>
       <ConversationHistory conversations={loadedConversations} />
       <MessageInput onSubmit={handleSubmit} />
-      {fetchingState.isLoading && <LoadingIndicator />}
+      {/* {fetchingState.isLoading && <LoadingIndicator />} */}
       {isModalOpen && modalComponent}
     </StyledDashboard.Container>
   );
