@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@API/*": ["src/API/*"],
+      "@Components/*": ["src/Components/*"],
+      "@Font/*": ["src/Font/*"],
+      "@Hooks/*": ["src/Hooks/*"],
+      "@Icon/*": ["src/Icon/*"],
+      "@Store/*": ["src/Store/*"],
+      "@Utils/*": ["src/Utils/*"],
+      "@View/*": ["src/View/*"],
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src", "**/*.js", "**/*.jsx"]
+}
