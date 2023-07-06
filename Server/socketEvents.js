@@ -49,9 +49,15 @@ const onSocketMessageUpdate = (socket, data) => {
  * @param {Socket} socket
  * @param {*} data
  */
-const onSocketMessageDelete = (socket, data) => {
+const onSocketMessageDelete = async (socket, data) => {
   console.log(`${socket.id}가 보냄: `, data);
 
+  // try {
+  //   const compareResult = await compareCommentPassword(data.messageID, data.inputPassword);
+  //   console.log(compareResult);
+  // } catch (error) {
+  //   console.log(error);
+  // }
   socket.broadcast.emit(EVENT_TYPE.MESSAGE_DELETE, data);
 };
 
@@ -79,11 +85,18 @@ const onSocketHistoryLoad = async (socket, { currentPage }) => {
  * @param {Socket} socket
  * @param {*} data
  */
-const onSocketPasswordCompare = (socket, data) => {
+const onSocketPasswordCompare = async (socket, data) => {
   console.log(`${socket.id}가 보냄: `, data);
 
+  try {
+    const compareResult = await compareCommentPassword(data.messageId, data.inputPassword);
+    console.log(compareResult);
+    socket.emit(EVENT_TYPE.PASSWORD_COMPARE, compareResult);
+  } catch (error) {
+    console.log(error);
+  }
+
   // socket.broadcast.emit(EVENT_TYPE.PASSWORD_COMPARE, data);
-  socket.emit(EVENT_TYPE.PASSWORD_COMPARE, data);
 };
 
 /** @param {Socket} socket */

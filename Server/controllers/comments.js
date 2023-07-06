@@ -102,7 +102,6 @@ const deleteComment = async (commentId) => {
 const compareCommentPassword = async (commentId, password) => {
   try {
     const commentPassword = await Comment.find({ _id: commentId }).select('userPassword');
-    // res.status(200).json({ compare: req.body.password === commentPassword[0].userPassword });
     return { compare: password === commentPassword[0].userPassword };
   } catch (error) {
     // res.status(500).json({ msg: error });
