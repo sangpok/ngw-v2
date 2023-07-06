@@ -14,27 +14,14 @@ import { openModal, setModalData } from '@Store/ModalSlice';
 import useDataFetcher, { DISPATCH_TYPE } from '@Hooks/useDataFetcher';
 import { addCommand } from '@Store/DashboardStateSlice';
 
-import { Socket, io } from 'socket.io-client';
-
-const EVENT_TYPE = {
-  CONNECT: 'connect',
-  DISCONNET: 'disconnet',
-  USER_ENTER: 'user_enter',
-  USER_LEAVE: 'user_leave',
-  MESSAGE: 'message',
-  MESSAGE_UPDATE: 'message_update',
-  MESSAGE_DELETE: 'message_delete',
-  HISTORY_LOAD: 'history_load',
-  PASSWORD_COMPARE: 'password_compare',
-};
-
-/** @type {Socket} */
-const socket = new io('http://localhost:3000/');
+import { EVENT_TYPE, socket } from '@Utils/socket';
+import { startLoading, endLoading } from '@Store/LoadingStateSlice';
 
 const Dashboard = ({ uid }) => {
   const storeDispatch = useDispatch();
 
-  const { fetchingState, dataDispatch } = useDataFetcher();
+  // const { fetchingState, dataDispatch } = useDataFetcher();
+  const { isLoading } = useSelector((state) => state.LoadingStateSlice);
 
   const { loadedConversations, currentPage } = useSelector((state) => state.ConversationSlice);
   const { userName, userPassword, userProfile } = useSelector((state) => state.UserAuthSlice);
@@ -77,16 +64,19 @@ const Dashboard = ({ uid }) => {
           response: data.comments,
         })
       );
+
+      storeDispatch(endLoading());
     };
 
-    socket.on('connect', onConnect);
-    socket.on('message', onMessage);
-    socket.on('USER_ENTER', onUserEnter);
-    socket.on('USER_LEAVE', onUserLeave);
+    socket.on(EVENT_TYPE.CONNECT, onConnect);
+    socket.on(EVENT_TYPE.MESSAGE, onMessage);
+    socket.on(EVENT_TYPE.USER_ENTER, onUserEnter);
+    socket.on(EVENT_TYPE.USER_LEAVE, onUserLeave);
     socket.on(EVENT_TYPE.HISTORY_LOAD, onHistoryLoad);
   }, []);
 
   useEffect(() => {
+    storeDispatch(startLoading());
     socket.emit(EVENT_TYPE.HISTORY_LOAD, { currentPage });
     // dataDispatch(DISPATCH_TYPE.GET_HISTORY_BY_PAGE, dispatchCallbacks, currentPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -99,6 +89,8 @@ const Dashboard = ({ uid }) => {
       storeDispatch(setModalData({ modalTitle: '설정', modalComponent: <SettingModal /> }));
       storeDispatch(openModal());
       storeDispatch(addCommand('modal-show'));
+
+      return;
     }
 
     socket.emit('message', {
@@ -111,6 +103,8 @@ const Dashboard = ({ uid }) => {
       commentContent: message,
       commentReply: replyData,
     });
+
+    // storeDispatch();
   };
 
   return (
@@ -118,6 +112,7 @@ const Dashboard = ({ uid }) => {
       <ConversationHistory conversations={loadedConversations} />
       <MessageInput onSubmit={handleSubmit} />
       {/* {fetchingState.isLoading && <LoadingIndicator />} */}
+      {isLoading && <LoadingIndicator />}
       {isModalOpen && modalComponent}
     </StyledDashboard.Container>
   );

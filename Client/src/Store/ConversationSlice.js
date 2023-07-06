@@ -54,7 +54,7 @@ const ConversationSlice = createSlice({
     currentPage: 1,
   },
   reducers: {
-    loadNextPage(state, action) {
+    nextPage(state, action) {
       state.currentPage++;
     },
     loadConversation(state, action) {
@@ -77,4 +77,4 @@ const ConversationSlice = createSlice({
 
 export default ConversationSlice;
 
-export const { updateConversationHistory } = ConversationSlice.actions;
+export const { nextPage, updateConversationHistory } = ConversationSlice.actions;

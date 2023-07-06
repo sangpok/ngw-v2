@@ -7,6 +7,7 @@ import FetchingStateSlice from './FetchingStateSlice';
 import DashboardStateSlice from './DashboardStateSlice';
 import UserAuthSlice from './UserAuthSlice';
 import ModalSlice from './ModalSlice';
+import LoadingStateSlice from './LoadingStateSlice';
 
 const store = configureStore({
   reducer: {
@@ -15,6 +16,7 @@ const store = configureStore({
     DashboardStateSlice: DashboardStateSlice.reducer,
     UserAuthSlice: UserAuthSlice.reducer,
     ModalSlice: ModalSlice.reducer,
+    LoadingStateSlice: LoadingStateSlice.reducer,
   },
   middleware: [],
   devTools: true,
@@ -22,4 +24,11 @@ const store = configureStore({
 
 export { store };
 
-export { ConversationSlice, FetchingStateSlice, DashboardStateSlice, UserAuthSlice, ModalSlice };
+export {
+  ConversationSlice,
+  FetchingStateSlice,
+  DashboardStateSlice,
+  UserAuthSlice,
+  ModalSlice,
+  LoadingStateSlice,
+};

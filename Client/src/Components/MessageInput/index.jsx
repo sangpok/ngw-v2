@@ -28,6 +28,7 @@ const MessageInput = ({ onSubmit }) => {
     });
 
     setInputedMessage('');
+    setSelectedTypeId(3);
   };
 
   const handleChange = (e) => {
