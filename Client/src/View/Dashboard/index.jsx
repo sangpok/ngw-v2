@@ -28,11 +28,11 @@ const Dashboard = ({ uid }) => {
 
   const { isModalOpen, modalComponent } = useSelector((state) => state.ModalSlice);
 
-  const dispatchCallbacks = {
-    onSuccess: (dispatchType, response) =>
-      storeDispatch(updateConversationHistory({ dispatchType, response })),
-    onError: (dispatchType, error) => console.log(error),
-  };
+  // const dispatchCallbacks = {
+  //   onSuccess: (dispatchType, response) =>
+  //     storeDispatch(updateConversationHistory({ dispatchType, response })),
+  //   onError: (dispatchType, error) => console.log(error),
+  // };
 
   useEffect(() => {
     const onConnect = () => {
