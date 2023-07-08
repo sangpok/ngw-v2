@@ -6,11 +6,13 @@ import { closeModal } from '@Store/ModalSlice';
 import { StyledDeleteModal } from './styled';
 
 import { EVENT_TYPE, socket } from '@Utils/socket';
+import { usePacket } from '@Hooks/usePacket';
 
 const { PropertyName, Group, Input, Describe } = StyledDeleteModal;
 
 const DeleteModal = ({ messageId }) => {
   const storeDispatch = useDispatch();
+  const { onceOn, sendPacket } = usePacket();
 
   const { modalTitle } = useSelector((state) => state.ModalSlice);
 
@@ -22,6 +24,10 @@ const DeleteModal = ({ messageId }) => {
       setErrorMessage('비밀번호가 다릅니다');
       return;
     }
+
+    // onceOn(EVENT_TYPE.MESSAGE_DELETE, messageId, onMessageDeleted);
+    sendPacket(EVENT_TYPE.MESSAGE_DELETE, messageId);
+    storeDispatch(closeModal());
   };
 
   const handleCancel = () => {
@@ -29,10 +35,7 @@ const DeleteModal = ({ messageId }) => {
   };
 
   const handleSubmit = () => {
-    // TODO: 비밀번호 삭제 진행
-    socket.once(EVENT_TYPE.PASSWORD_COMPARE, onPasswordCompare);
-    socket.emit(EVENT_TYPE.PASSWORD_COMPARE, { messageId, inputPassword });
-    storeDispatch(closeModal());
+    onceOn(EVENT_TYPE.PASSWORD_COMPARE, { messageId, inputPassword }, onPasswordCompare);
   };
 
   return (

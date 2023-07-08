@@ -45,6 +45,13 @@ const ConversationHistory = ({ conversations }) => {
       return;
     }
 
+    if (conversations.length === prevConversations.current.length) {
+      /// 리액션 추가
+      prevConversations.current = conversations;
+      lastMessageId.current = conversations[0]._id;
+      return;
+    }
+
     if (conversations.length - prevConversations.current.length === 1) {
       if (conversations.at(-1).uid === uid) {
         containerRef.current.scrollTop = containerRef.current.scrollHeight;
@@ -52,6 +59,13 @@ const ConversationHistory = ({ conversations }) => {
         // 남이 보낸 거
       }
 
+      prevConversations.current = conversations;
+      lastMessageId.current = conversations[0]._id;
+      return;
+    }
+
+    // 메시지 삭제
+    if (prevConversations.current.length - conversations.length === 1) {
       prevConversations.current = conversations;
       lastMessageId.current = conversations[0]._id;
       return;

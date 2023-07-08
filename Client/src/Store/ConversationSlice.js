@@ -3,28 +3,46 @@ import { DISPATCH_TYPE } from '@Hooks/useDataFetcher';
 
 import { createSlice } from '@reduxjs/toolkit';
 
+const UPDATE_TYPE = {
+  MESSAGE_ADDED: 'message_added',
+  MESSAGE_DELETED: 'message_deleted',
+  REACTION_UPDATED: 'reaction_updated',
+  HISTORY_LOADED: 'history_loaded',
+};
+
 const loadedCommentIds = new Set();
 
 const changeConversation = (state, newState) => {
   state.loadedConversations = newState;
 };
 
-const updateConversationAfterCreate = (state, response) => {
-  changeConversation(state, [].concat(...state.loadedConversations, response.comment));
+const updateAfterMessageAdded = (state, message) => {
+  changeConversation(state, [].concat(...state.loadedConversations, message));
 };
 
-const updateConversationAfterUpdate = (state, response) => {
+const updateAfterMessageDeleted = (state, messageId) => {
+  changeConversation(
+    state,
+    state.loadedConversations.filter((comment) => comment._id !== messageId)
+  );
+};
+
+const updateAfterReactionUpdated = (state, message) => {
   const commentIndex = state.loadedConversations.findIndex(
-    (comment) => comment._id === response.comment._id
+    (comment) => comment._id === message._id
   );
 
-  state.loadedConversations[commentIndex] = response.comment;
+  if (commentIndex === -1) {
+    return;
+  }
+
+  state.loadedConversations[commentIndex] = message;
 };
 
-const updateConversationAfterGet = (state, response) => {
+const updateAfterHistoryLoaded = (state, messages) => {
   const newHistory = [];
 
-  response.forEach((newComment) => {
+  messages.forEach((newComment) => {
     if (loadedCommentIds.has(newComment._id)) {
       return;
     }
@@ -40,13 +58,6 @@ const updateConversationAfterGet = (state, response) => {
   state.loadedConversations = [].concat(...newHistory, ...state.loadedConversations);
 };
 
-const updateConversationAfterDelete = (state, response) => {
-  changeConversation(
-    state,
-    state.loadedConversations.filter((comment) => comment._id !== response.comment._id)
-  );
-};
-
 const ConversationSlice = createSlice({
   name: 'ConversationSlice',
   initialState: {
@@ -57,24 +68,27 @@ const ConversationSlice = createSlice({
     nextPage(state, action) {
       state.currentPage++;
     },
-    loadConversation(state, action) {
-      state.loadedConversations.push(...action.payload);
-    },
-    updateConversationHistory: (state, action) => {
-      const { dispatchType, response } = action.payload;
+    updateConversations: (state, action) => {
+      const { updateType, messageData } = action.payload;
 
       const updateFunMap = {
-        [DISPATCH_TYPE.CREATE_COMMENT]: () => updateConversationAfterCreate(state, response),
-        [DISPATCH_TYPE.UPDATE_REACTION]: () => updateConversationAfterUpdate(state, response),
-        [DISPATCH_TYPE.GET_HISTORY_BY_PAGE]: () => updateConversationAfterGet(state, response),
-        [DISPATCH_TYPE.DELETE_COMMENT]: () => updateConversationAfterDelete(state, response),
+        [UPDATE_TYPE.MESSAGE_ADDED]: () => updateAfterMessageAdded(state, messageData),
+        [UPDATE_TYPE.MESSAGE_DELETED]: () => updateAfterMessageDeleted(state, messageData),
+        [UPDATE_TYPE.REACTION_UPDATED]: () => updateAfterReactionUpdated(state, messageData),
+        [UPDATE_TYPE.HISTORY_LOADED]: () => updateAfterHistoryLoaded(state, messageData),
+
+        // [DISPATCH_TYPE.CREATE_COMMENT]: () => updateConversationAfterCreate(state, response),
+        // [DISPATCH_TYPE.UPDATE_REACTION]: () => updateConversationAfterUpdate(state, response),
+        // [DISPATCH_TYPE.GET_HISTORY_BY_PAGE]: () => updateConversationAfterGet(state, response),
+        // [DISPATCH_TYPE.DELETE_COMMENT]: () => updateConversationAfterDelete(state, response),
       };
 
-      updateFunMap[dispatchType]();
+      updateFunMap[updateType]();
     },
   },
 });
 
 export default ConversationSlice;
 
-export const { nextPage, updateConversationHistory } = ConversationSlice.actions;
+export { UPDATE_TYPE };
+export const { nextPage, updateConversations } = ConversationSlice.actions;

@@ -84,7 +84,7 @@ const ChatMessage = ({ conversation }) => {
         )}
       </InfoWrapper>
 
-      {currentHoverMessageId === _id && <HoverMenu mesasgeId={_id} />}
+      {currentHoverMessageId === _id && <HoverMenu messageId={_id} />}
     </MessageWrapper>
   );
 };

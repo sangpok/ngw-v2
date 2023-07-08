@@ -1,17 +1,26 @@
 import { EVENT_TYPE, socket } from '@Utils/socket';
 import { useEffect } from 'react';
 
+const hasEvent = (eventName) => socket.hasListeners(eventName);
+
 export const usePacket = () => {
-  useEffect(() => {
-    socket.on(EVENT_TYPE.MESSAGE);
-  }, []);
-
-  const sendPacket = (packetType, data, callback) => {
-    const hasEvent = socket.hasListeners(packetType);
-
-    if (!hasEvent) {
+  const alwaysOn = (packetType, callback) => {
+    if (!hasEvent(packetType)) {
+      socket.on(packetType, callback);
     }
   };
 
-  return { sendPacket };
+  const onceOn = (packetType, data, callback) => {
+    if (!hasEvent(packetType)) {
+      socket.once(packetType, callback);
+    }
+
+    socket.emit(packetType, data);
+  };
+
+  const sendPacket = (packetType, data) => {
+    socket.emit(packetType, data);
+  };
+
+  return { alwaysOn, onceOn, sendPacket };
 };

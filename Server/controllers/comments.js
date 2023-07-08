@@ -11,15 +11,13 @@ const getAllComments = async (req, res) => {
   }
 };
 
-const getCommentsByPage = async (currentPage) => {
+const getCommentsByPage = async (currentPage, newCount) => {
   // const currentPage = req.query.page || 1;
 
   try {
-    console.log(currentPage);
-
     const comments = await Comment.find({})
       .sort({ commentDate: 'desc' })
-      .skip((currentPage - 1) * 10)
+      .skip((currentPage - 1) * 10 - newCount)
       .limit(10)
       .select('-userPassword');
 
@@ -37,7 +35,7 @@ const createComment = async (commentData) => {
   try {
     const comment = await Comment.create(commentData);
     // res.status(201).json({ comment });
-    return { comment };
+    return comment;
   } catch (error) {
     // res.status(500).json({ msg: error });
     throw { error };
@@ -55,28 +53,30 @@ const getComment = async (commentId) => {
   }
 };
 
-const updateComment = async (commentId, iconId) => {
+const updateComment = async (messageId, emojiId) => {
   try {
-    const comment = await Comment.findById(commentId);
+    const comment = await Comment.findById(messageId);
     // console.log(comment);
     const commentReactions = comment.commentReactions;
 
     if (!commentReactions.length) {
-      comment.commentReactions.push({ icon: iconId, count: 1 });
+      comment.commentReactions.push({ icon: emojiId, count: 1 });
     } else {
       const reactionIndex = comment.commentReactions.findIndex(
-        (value) => value.icon === iconId.toString()
+        (value) => value.icon === emojiId.toString()
       );
 
       if (reactionIndex !== -1) {
         comment.commentReactions[reactionIndex].count++;
       } else {
-        comment.commentReactions.push({ icon: iconId, count: 1 });
+        comment.commentReactions.push({ icon: emojiId, count: 1 });
       }
     }
 
     // console.log(comment);
     await comment.save();
+
+    return comment;
 
     // res.status(200).json({ comment });
     return { comment };
@@ -92,7 +92,7 @@ const deleteComment = async (commentId) => {
   try {
     const comment = await Comment.findOneAndDelete({ _id: commentId });
     // res.status(200).json({ comment });
-    return { comment };
+    return comment;
   } catch (error) {
     // res.status(500).json({ msg: error });
     throw { error };

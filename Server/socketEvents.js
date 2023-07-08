@@ -28,57 +28,68 @@ let socketInstance = null;
  * @param {Socket} socket
  * @param {*} data
  */
-const onSocketMessage = (socket, data) => {
+const onSocketMessage = async (socket, data) => {
   console.log(`${socket.id}가 보냄: `, data);
-
-  // socket.broadcast.emit(EVENT_TYPE.MESSAGE, data);
-  socketInstance.emit(EVENT_TYPE.MESSAGE, data);
-};
-
-/**
- * @param {Socket} socket
- * @param {*} data
- */
-const onSocketMessageUpdate = (socket, data) => {
-  console.log(`${socket.id}가 보냄: `, data);
-
-  socket.broadcast.emit(EVENT_TYPE.MESSAGE_UPDATE, data);
-};
-
-/**
- * @param {Socket} socket
- * @param {*} data
- */
-const onSocketMessageDelete = async (socket, data) => {
-  console.log(`${socket.id}가 보냄: `, data);
-
-  // try {
-  //   const compareResult = await compareCommentPassword(data.messageID, data.inputPassword);
-  //   console.log(compareResult);
-  // } catch (error) {
-  //   console.log(error);
-  // }
-  socket.broadcast.emit(EVENT_TYPE.MESSAGE_DELETE, data);
-};
-
-/**
- * @param {Socket} socket
- * @param {*} data
- */
-const onSocketHistoryLoad = async (socket, { currentPage }) => {
-  console.log(`${socket.id}가 보냄: `, currentPage);
 
   try {
-    const messageHistory = await getCommentsByPage(currentPage);
+    const createdMessage = await createComment(data);
 
-    console.log(messageHistory);
-
-    socket.emit(EVENT_TYPE.HISTORY_LOAD, messageHistory);
+    socketInstance.emit(EVENT_TYPE.MESSAGE, Object.assign({}, data, createdMessage.toJSON()));
   } catch (error) {
     console.log(error);
   }
+};
 
-  // socket.broadcast.emit(EVENT_TYPE.HISTORY_LOAD, data);
+/**
+ * @param {Socket} socket
+ * @param {*} data
+ */
+const onSocketMessageUpdate = async (socket, { messageId, emojiId }) => {
+  console.log(`${socket.id}가 보냄: `, messageId, emojiId);
+
+  try {
+    const updatedMessage = await updateComment(messageId, emojiId);
+
+    socketInstance.emit(
+      EVENT_TYPE.MESSAGE_UPDATE,
+      Object.assign({}, { socketId: socket.id }, updatedMessage.toJSON())
+    );
+    // return comment
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+/**
+ * @param {Socket} socket
+ * @param {*} messageId
+ */
+const onSocketMessageDelete = async (socket, messageId) => {
+  console.log(`${socket.id}의 메시지 삭제 요청: `, messageId);
+
+  try {
+    const messageHistory = await deleteComment(messageId);
+
+    socketInstance.emit(EVENT_TYPE.MESSAGE_DELETE, messageHistory.toJSON());
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+/**
+ * @param {Socket} socket
+ * @param {*} data
+ */
+const onSocketHistoryLoad = async (socket, { currentPage, newCount }) => {
+  console.log(`${socket.id}의 히스토리 로드 요청: `, currentPage);
+
+  try {
+    const messageHistory = await getCommentsByPage(currentPage, newCount);
+
+    socket.emit(EVENT_TYPE.HISTORY_LOAD, messageHistory.comments);
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 /**
@@ -86,17 +97,14 @@ const onSocketHistoryLoad = async (socket, { currentPage }) => {
  * @param {*} data
  */
 const onSocketPasswordCompare = async (socket, data) => {
-  console.log(`${socket.id}가 보냄: `, data);
+  console.log(`${socket.id}의 비밀번호 비교 요청: `, data);
 
   try {
     const compareResult = await compareCommentPassword(data.messageId, data.inputPassword);
-    console.log(compareResult);
     socket.emit(EVENT_TYPE.PASSWORD_COMPARE, compareResult);
   } catch (error) {
     console.log(error);
   }
-
-  // socket.broadcast.emit(EVENT_TYPE.PASSWORD_COMPARE, data);
 };
 
 /** @param {Socket} socket */

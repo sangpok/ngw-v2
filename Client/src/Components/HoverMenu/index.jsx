@@ -17,11 +17,16 @@ import {
 import { addCommand, removeCommand } from '@Store/DashboardStateSlice';
 import DeleteModal from '@Components/Modal/DeleteModal';
 import { openModal, setModalData } from '@Store/ModalSlice';
+import { UPDATE_TYPE, updateConversations } from '@Store/ConversationSlice';
+import { usePacket } from '@Hooks/usePacket';
+import { EVENT_TYPE } from '@Utils/socket';
 
 const { Container, Button, MoreIcon, ReactionIcon } = StyledHoverMenu;
 
-const HoverMenu = ({ mesasgeId }) => {
+const HoverMenu = ({ messageId }) => {
   const storeDispatch = useDispatch();
+
+  const { sendPacket } = usePacket();
 
   const { hoverSubMenuOpened } = useSelector((state) => state.DashboardStateSlice);
   const { loadedConversations } = useSelector((state) => state.ConversationSlice);
@@ -64,6 +69,25 @@ const HoverMenu = ({ mesasgeId }) => {
   const handleReaction = (selectedItem) => {
     storeDispatch(addReactionHistory(selectedItem.data.emojiId));
     storeDispatch(removeCommand('hover-submenu-clicked'));
+
+    // TODO: 리액션 추가
+    // console.log(selectedItem);
+    // return;
+
+    console.log(messageId);
+
+    const messagePacket = {
+      messageId,
+      emojiId: selectedItem.data.emojiId,
+    };
+
+    sendPacket(EVENT_TYPE.MESSAGE_UPDATE, messagePacket);
+    // storeDispatch(
+    //   updateConversations({
+    //     updateType: UPDATE_TYPE.REACTION_UPDATED,
+    //     updateData: { messageId, emojiId: selectedItem.data.emojiId },
+    //   })
+    // );
   };
 
   const handleMoreMenu = (selectedItem) => {
@@ -77,7 +101,7 @@ const HoverMenu = ({ mesasgeId }) => {
 
   const replyEvent = (selectedItem) => {
     const matchedMessage = loadedConversations.find(
-      (conversation) => conversation._id === mesasgeId
+      (conversation) => conversation._id === messageId
     );
 
     storeDispatch(setReplyData(matchedMessage));
@@ -89,7 +113,7 @@ const HoverMenu = ({ mesasgeId }) => {
     storeDispatch(
       setModalData({
         modalTitle: '방명록 삭제',
-        modalComponent: <DeleteModal messageId={mesasgeId} />,
+        modalComponent: <DeleteModal messageId={messageId} />,
       })
     );
     storeDispatch(openModal());
