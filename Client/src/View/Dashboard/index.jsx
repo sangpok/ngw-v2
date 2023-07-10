@@ -30,6 +30,10 @@ const Dashboard = ({ uid }) => {
 
   const addedMessageCount = useRef(0);
 
+  /**
+   * @param {UPDATE_TYPE} type
+   * @param {*} data
+   */
   const updateConversation = (type, data) =>
     storeDispatch(updateConversations({ updateType: type, messageData: data }));
 
