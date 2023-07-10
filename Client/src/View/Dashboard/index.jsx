@@ -20,7 +20,6 @@ import { EVENT_TYPE, socket } from '@Utils/socket';
 const Dashboard = ({ uid }) => {
   const storeDispatch = useDispatch();
 
-  // const { fetchingState, dataDispatch } = useDataFetcher();
   const { alwaysOn, onceOn, sendPacket } = usePacket();
   const { isLoading } = useSelector((state) => state.LoadingStateSlice);
 
@@ -55,7 +54,7 @@ const Dashboard = ({ uid }) => {
   const onConnect = () => {
     console.log('내 socket.id: ', socket.id);
 
-    onceOn(EVENT_TYPE.HISTORY_LOAD, { currentPage });
+    onceOn(EVENT_TYPE.HISTORY_LOAD, { currentPage }, onHistoryLoad);
   };
 
   const onUserEnter = (userId) => {
@@ -91,7 +90,6 @@ const Dashboard = ({ uid }) => {
       onHistoryLoad
     );
 
-    // dataDispatch(DISPATCH_TYPE.GET_HISTORY_BY_PAGE, dispatchCallbacks, currentPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 

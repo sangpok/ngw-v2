@@ -29,6 +29,9 @@ const MessageInput = ({ onSubmit }) => {
 
     setInputedMessage('');
     setSelectedTypeId(3);
+
+    storeDispatch(setReplyData(null));
+    storeDispatch(removeCommand('reply'));
   };
 
   const handleChange = (e) => {
