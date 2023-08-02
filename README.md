@@ -197,5 +197,11 @@
 
 ---
 
+# 실제로 적용된 화면
+![](https://velog.velcdn.com/images/sangpok/post/19e4cc9a-82ef-48da-ad1e-33d3eecea442/image.png)
+
+
+---
+
 # 개발일지
 - [노션 방명록 위젯에 Socket.io 도입하기 /velog](https://velog.io/@sangpok/%EB%85%B8%EC%85%98-%EB%B0%A9%EB%AA%85%EB%A1%9D-%EC%9C%84%EC%A0%AF%EC%97%90-Socket.io-%EB%8F%84%EC%9E%85%ED%95%98%EA%B8%B0)
